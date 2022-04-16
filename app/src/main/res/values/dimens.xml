@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="indentationTiny">2dp</dimen>
+    <dimen name="indentationSmall">4dp</dimen>
+    <dimen name="indentationRegular">8dp</dimen>
+    <dimen name="indentationMedium">16dp</dimen>
+    <dimen name="indentationSemiBig">24dp</dimen>
+    <dimen name="indentationBig">32dp</dimen>
+    <dimen name="indentationSemiHuge">48dp</dimen>
+    <dimen name="indentationHuge">64dp</dimen>
+
+    <dimen name="radiusTiny">1dp</dimen>
+    <dimen name="radiusSmaller">3dp</dimen>
+    <dimen name="radiusSmall">5dp</dimen>
+    <dimen name="radiusRegular">8dp</dimen>
+    <dimen name="radiusMedium">16dp</dimen>
+    <dimen name="radiusBig">24dp</dimen>
+    <dimen name="radiusMax">9999dp</dimen>
+
+    <dimen name="a4Width">70dp</dimen>
+    <dimen name="a4Height">99dp</dimen>
+</resources>

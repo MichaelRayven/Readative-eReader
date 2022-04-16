@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="book"
+            type="com.example.readative.viewmodel.BookViewModel" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:background="@drawable/sp_border_default"
+        android:padding="@dimen/indentationRegular">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivCover"
+            android:layout_width="@dimen/a4Width"
+            android:layout_height="@dimen/a4Height"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/roundedImageView"
+            tools:src="@tools:sample/avatars"
+            app:srcCompat="@{book.cover}" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/indentationMedium"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivCover"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                style="@style/TextAppearance.Material3.TitleMedium"
+                tools:text="A title the max length of which should be about two lines at its maximum size and"
+                android:text="@{book.title}" />
+
+            <TextView
+                android:id="@+id/tvMeta"
+                style="@style/TextAppearance.Material3.BodySmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:visibility='@{book.meta != null ? "visible" : "gone"}'
+                android:text='@{book.meta}'
+                tools:text="Author Author, Series name" />
+
+            <TextView
+                android:id="@+id/tvProperties"
+                style="@style/TextAppearance.Material3.BodySmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:visibility='@{book.properties != null ? "visible" : "gone"}'
+                android:text='@{book.properties}'
+                tools:text="Format in Archive, 207 MB" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:layout_marginTop="@dimen/indentationMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:indicatorColor="?colorPrimaryVariant"
+                app:trackColor="?colorPrimary"
+                app:trackCornerRadius="@dimen/radiusTiny"
+                app:trackThickness="2dp"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
