@@ -1,17 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Readative" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/turquoise_300</item>
-        <item name="colorPrimaryVariant">@color/turquoise_300</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/yellow_400</item>
-        <item name="colorSecondaryVariant">@color/yellow_600</item>
-        <item name="colorOnSecondary">@color/black</item>
+    <style name="Theme.Readative" parent="Theme.Material3.Light.NoActionBar">
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
         <!-- Customize your theme here. -->
-        <item name="colorError">@color/design_default_color_error</item>
     </style>
 </resources>
