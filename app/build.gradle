@@ -17,6 +17,12 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation":
+                                      "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -34,7 +40,10 @@ android {
 dependencies {
     def room_version = "2.4.2"
 
+    implementation "io.reactivex.rxjava3:rxjava:3.1.4"
+    implementation "androidx.room:room-rxjava3:$room_version"
     implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-paging:2.5.0-alpha01"
     annotationProcessor "androidx.room:room-compiler:$room_version"
     implementation "androidx.viewpager2:viewpager2:1.0.0"
     implementation 'androidx.appcompat:appcompat:1.4.1'
