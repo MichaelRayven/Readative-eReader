@@ -40,8 +40,11 @@ android {
 dependencies {
     def room_version = "2.4.2"
 
-    implementation "io.reactivex.rxjava3:rxjava:3.1.4"
-    implementation "androidx.room:room-rxjava3:$room_version"
+//    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+//    implementation "io.reactivex.rxjava3:rxjava:3.1.4"
+//    implementation "androidx.room:room-rxjava3:$room_version"
+    implementation("com.google.guava:guava:31.1-android")
+    implementation "androidx.room:room-guava:2.5.0-alpha01"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-paging:2.5.0-alpha01"
     annotationProcessor "androidx.room:room-compiler:$room_version"

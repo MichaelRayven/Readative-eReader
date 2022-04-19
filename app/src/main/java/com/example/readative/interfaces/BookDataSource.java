@@ -1,5 +1,7 @@
 package com.example.readative.interfaces;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.readative.room.entity.Author;
 import com.example.readative.room.entity.Book;
 import com.example.readative.room.entity.Bookmark;
@@ -17,7 +19,7 @@ import java.util.List;
 import io.reactivex.rxjava3.core.Flowable;
 
 public interface BookDataSource {
-    Flowable<Book> getBook();
+    LiveData<Book> getBook();
     Flowable<Author> getAuthor();
     Flowable<Review> getReview();
 

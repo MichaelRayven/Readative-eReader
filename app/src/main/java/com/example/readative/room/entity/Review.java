@@ -25,7 +25,7 @@ public class Review {
     @ColumnInfo(name = "review_content")
     public String content;
 
-    public Review() {
+    public Review(@NonNull long id, @NonNull long bookOwnerId, @NonNull int rating, String content) {
         this.id = id;
         this.bookOwnerId = bookOwnerId;
         this.content = content;
