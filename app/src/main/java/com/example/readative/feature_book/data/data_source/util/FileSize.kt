@@ -1,13 +1,15 @@
-package com.example.readative.persistance.entities
+package com.example.readative.feature_book.data.data_source.util
 
 
+import com.example.readative.feature_book.data.data_source.util.SizeUnit
 import kotlin.math.log
 import kotlin.math.pow
 import kotlin.math.round
 
-class FileSize(private val byteSize: Long = 0) {
+class FileSize(byteSize: Long = 0) {
     var size: Float
     var unit: SizeUnit
+
     init {
         val exponent = log(1024.0, byteSize.toDouble()).toInt()
         unit = SizeUnit.fromValue(exponent) ?: SizeUnit.Bytes

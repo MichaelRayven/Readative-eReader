@@ -1,6 +1,7 @@
-package com.example.readative.persistance.entities
+package com.example.readative.feature_book.data.data_source.models
 
 import androidx.room.*
+import com.example.readative.feature_book.data.data_source.models.Book
 
 @Entity(
     tableName = "bookmarks",

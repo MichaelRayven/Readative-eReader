@@ -1,9 +1,10 @@
-package com.example.readative.persistance.entities
+package com.example.readative.feature_book.data.data_source.models
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.readative.feature_book.data.data_source.util.LanguageDirectionality
 
 @Entity(
     tableName = "languages",
@@ -14,6 +15,7 @@ import androidx.room.PrimaryKey
 )
 data class Language(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") override val id: Long,
+    @ColumnInfo(name = "original_name") val originalName: String,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "code") val code: String,
     @ColumnInfo(name = "directionality") val directionality: LanguageDirectionality = LanguageDirectionality.LEFT_TO_RIGHT,

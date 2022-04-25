@@ -1,4 +1,4 @@
-package com.example.readative.persistance.entities
+package com.example.readative.feature_book.data.data_source.models
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

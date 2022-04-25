@@ -1,6 +1,4 @@
-package com.example.readative.persistance.entities
-
-import kotlin.math.pow
+package com.example.readative.feature_book.data.data_source.util
 
 enum class SizeUnit(val exponent: Int) {
     Bytes(0),
