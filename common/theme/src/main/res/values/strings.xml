@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Readative</string>
+    <string name="cover_description">Book cover</string>
+
+    <string name="hide_dropdown">Close dropdown menu</string>
+    <string name="show_dropdown">Open dropdown menu</string>
+    <string name="file_in_archive">%s in %s</string>
+</resources>

@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdk 31
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 31
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.7.0'
+
+    /* Jetpack Compose dependencies */
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation 'com.google.android.material:material:1.5.0'
+    // Tooling support (Previews, etc.)
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    // Animations
+    implementation "androidx.compose.animation:animation:$compose_version"
+    // Material Design and Icons
+    implementation "androidx.compose.material:material:1.2.0-alpha08"
+    implementation "androidx.compose.material3:material3:1.0.0-alpha10"
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    // Integration with activities
+    implementation 'androidx.activity:activity-compose:1.4.0'
+    // Integration with ViewModels
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1'
+    // Integration with observables
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    // Layouts
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    // Navigation
+    def nav_version = "2.4.2"
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+}
