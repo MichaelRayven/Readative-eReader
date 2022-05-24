@@ -7,7 +7,7 @@ interface Repository<T, K> {
 
     suspend fun getById(id: K): T?
 
-    suspend fun insert(entity: T)
+    suspend fun insert(entity: T): K
 
     suspend fun update(entity: T)
 

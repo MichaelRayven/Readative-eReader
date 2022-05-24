@@ -7,5 +7,5 @@ import kotlinx.parcelize.Parcelize
 data class SeriesDto(
     val id: Long,
     val name: String,
-    val part: Int?
+    var part: Int? = null
 ) : Parcelable

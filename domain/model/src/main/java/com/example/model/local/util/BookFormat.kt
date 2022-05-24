@@ -5,13 +5,13 @@ enum class BookFormat(
     val bookFormat: String,
     val archiveFormat: ArchiveFormat? = null
 ) {
-    PDF(".pdf", "PDF"),
-    FBZ(".fbz", "FB2", ArchiveFormat.ZIP),
-    DOC(".doc", "DOC"),
-    DOCX(".docx", "DOCX"),
-    RTF(".rtf", "RTF"),
-    MOBI(".mobi", "MOBI"),
-    TXT(".txt", "TXT"),
-    FB2(".fb2", "FB2"),
-    EPUB(".epub", "EPUB");
+    PDF("pdf", "PDF"),
+//    FBZ("fbz", "FB2", ArchiveFormat.ZIP),
+//    DOC("doc", "DOC"),
+//    DOCX("docx", "DOCX"),
+//    RTF("rtf", "RTF"),
+//    MOBI("mobi", "MOBI"),
+//    TXT("txt", "TXT"),
+//    FB2("fb2", "FB2"),
+    EPUB("epub", "EPUB", ArchiveFormat.ZIP);
 }

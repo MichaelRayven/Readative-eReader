@@ -4,10 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.local.converter.Converters
-import com.example.local.dao.AuthorDao
-import com.example.local.dao.BookDao
-import com.example.local.dao.FileDao
-import com.example.local.dao.SeriesDao
+import com.example.local.dao.*
 import com.example.model.local.entity.*
 import com.example.model.local.relation.*
 
@@ -18,14 +15,14 @@ import com.example.model.local.relation.*
         BookFile::class,
         BookFts::class,
         Bookmark::class,
-        Genre::class,
+        Subject::class,
         Language::class,
         Quote::class,
         Review::class,
         Series::class,
         Shelf::class,
         BookAuthorCrossRef::class,
-        BookGenreCrossRef::class,
+        BookSubjectCrossRef::class,
         BookLanguageCrossRef::class,
         BookSeriesCrossRef::class,
         BookShelfCrossRef::class
@@ -40,8 +37,14 @@ abstract class ReadativeDatabase : RoomDatabase() {
     abstract val authorDao: AuthorDao
     abstract val seriesDao: SeriesDao
     abstract val fileDao: FileDao
+    abstract val bookmarkDao: BookmarkDao
+    abstract val subjectDao: SubjectDao
+    abstract val quoteDao: QuoteDao
+    abstract val reviewDao: ReviewDao
+    abstract val shelfDao: ShelfDao
+    abstract val crossRefsDao: CrossRefsDao
 
     companion object {
-        const val DATABASE_NAME = "readative_db"
+        const val DATABASE_NAME = "readative.db"
     }
 }

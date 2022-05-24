@@ -13,8 +13,11 @@ interface AuthorDao {
     @Query("SELECT * FROM authors WHERE id = :id")
     suspend fun getAuthorById(id: Long): Author?
 
+    @Query("SELECT * FROM authors WHERE first_name = :firstName AND middle_name = :middleName AND last_name = :lastName")
+    suspend fun getAuthorByFullName(firstName: String, middleName: String?, lastName: String?): Author?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAuthor(author: Author)
+    suspend fun insertAuthor(author: Author): Long
 
     @Update
     suspend fun updateAuthor(author: Author)

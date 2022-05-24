@@ -12,6 +12,10 @@ class FileRepositoryImpl(
 
     override fun getAllByBookId(id: Long): Flow<List<BookFile>> = dao.getFilesByBookId(id)
 
+    override suspend fun getByPath(path: String): BookFile? = dao.getFileByPath(path)
+
+    override suspend fun getAllByPath(path: String): Flow<List<BookFile>> = dao.getFilesByPath(path)
+
     override suspend fun getById(id: Long): BookFile? = dao.getFileById(id)
 
     override suspend fun insert(entity: BookFile) = dao.insertFile(entity)

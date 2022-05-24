@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.model.dto.extension.toBasicBookDto
 import com.example.usecase.books.BookUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -29,7 +30,7 @@ class BooksViewModel @Inject constructor(
         getBooksJob = bookUseCases.getBooks()
             .onEach { bookList ->
                 _state.value = state.value.copy(
-                    books = bookList
+                    books = bookList.map { it.toBasicBookDto() }
                 )
             }
             .launchIn(viewModelScope)

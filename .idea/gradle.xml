@@ -29,10 +29,12 @@
             <option value="$PROJECT_DIR$/features/books" />
             <option value="$PROJECT_DIR$/features/files" />
             <option value="$PROJECT_DIR$/features/library" />
-            <option value="$PROJECT_DIR$/features/reader" />
+            <option value="$PROJECT_DIR$/features/reading" />
             <option value="$PROJECT_DIR$/features/storage" />
             <option value="$PROJECT_DIR$/libraries" />
+            <option value="$PROJECT_DIR$/libraries/archives" />
             <option value="$PROJECT_DIR$/libraries/framework" />
+            <option value="$PROJECT_DIR$/libraries/reader" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

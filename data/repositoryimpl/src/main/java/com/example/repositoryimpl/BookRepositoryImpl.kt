@@ -13,7 +13,15 @@ class BookRepositoryImpl(
 ) : BookRepository {
     override fun getAllWithBasicInfo(): Flow<List<BookWithBasicInfo>> = dao.getBasicInfoBooks()
 
+    override fun getAllWithFullInfo(): Flow<List<BookWithFullInfo>> = dao.getFullInfoBooks()
+
     override suspend fun getByIdWithFullInfo(id: Long): BookWithFullInfo? = dao.getFullInfoBookById(id)
+
+    override suspend fun getByIdWithBasicInfo(id: Long): BookWithBasicInfo? = dao.getBasicInfoBookById(id)
+
+    override suspend fun getByChecksumWithBasicInfo(checksum: String): BookWithBasicInfo? = dao.getBasicInfoBookByChecksum(checksum)
+
+    override suspend fun getByChecksum(checksum: String): Book? = dao.getBookByChecksum(checksum)
 
     override fun getAll(): Flow<List<Book>> = dao.getBooks()
 

@@ -16,7 +16,6 @@ import com.example.model.local.util.FileSize
             entity = Book::class,
             parentColumns = ["id"],
             childColumns = ["book_id"],
-            onUpdate = CASCADE,
             onDelete = CASCADE
         )
     ]

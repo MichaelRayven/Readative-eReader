@@ -10,7 +10,7 @@ fun BookWithBasicInfo.toBasicBookDto() = BasicBookDto(
     title = book.title,
     bookCover = book.coverPath,
     readingProgress = book.progress,
-    file = file.toBasicBookFileDto(),
+    file = if (files.isNotEmpty()) files[0].toBasicBookFileDto() else null,
     series = series.toSeriesDto(),
     authors = authors.toBasicAuthorDto()
 )

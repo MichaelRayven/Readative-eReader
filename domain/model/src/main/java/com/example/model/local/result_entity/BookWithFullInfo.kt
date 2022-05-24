@@ -28,7 +28,7 @@ data class BookWithFullInfo (
         parentColumn = "id",
         entityColumn = "book_id"
     )
-    val review: Review,
+    val review: Review?,
     @Relation(
         parentColumn = "id",
         entity = Author::class,
@@ -53,15 +53,15 @@ data class BookWithFullInfo (
     val languages: List<Language>,
     @Relation(
         parentColumn = "id",
-        entity = Genre::class,
+        entity = Subject::class,
         entityColumn = "id",
         associateBy = Junction(
-            value = BookGenreCrossRef::class,
+            value = BookSubjectCrossRef::class,
             parentColumn = "book_id",
-            entityColumn = "genre_id"
+            entityColumn = "subject_id"
         )
     )
-    val genres: List<Genre>,
+    val subjects: List<Subject>,
     @Relation(
         parentColumn = "id",
         entity = Shelf::class,

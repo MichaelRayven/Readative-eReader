@@ -7,13 +7,11 @@ import com.example.model.local.util.ReadingStatus
 @Entity(
     tableName = "books",
     indices = [
-        Index(value = ["checksum"], unique = true),
-        Index(value = ["primary_file_id"], unique = true)
+        Index(value = ["checksum"], unique = true)
     ]
 )
 data class Book (
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") override val id: Long,
-    @ColumnInfo(name = "primary_file_id") val fileId: Long,
     @ColumnInfo(name = "checksum") val checksum: String,
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "annotation") val description: String? = null,

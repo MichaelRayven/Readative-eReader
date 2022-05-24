@@ -13,7 +13,7 @@ interface SeriesDao {
     suspend fun getSeriesById(id: Long): Series?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertSeries(series: Series)
+    suspend fun insertSeries(series: Series): Long
 
     @Update
     suspend fun updateSeries(series: Series)

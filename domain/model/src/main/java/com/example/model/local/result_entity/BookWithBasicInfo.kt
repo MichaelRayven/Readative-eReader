@@ -13,10 +13,10 @@ import com.example.model.local.relation.BookSeriesCrossRef
 data class BookWithBasicInfo(
     @Embedded val book: Book,
     @Relation(
-        parentColumn = "primary_file_id",
-        entityColumn = "id"
+        parentColumn = "id",
+        entityColumn = "book_id"
     )
-    val file: BookFile,
+    val files: List<BookFile>,
     @Relation(
         parentColumn = "id",
         entity = Author::class,
@@ -45,5 +45,5 @@ data class BookWithBasicInfo(
         entityColumn = "book_id",
         projection = ["part"]
     )
-    val partOfSeries: List<Int>
+    val partOfSeries: List<Int?>
 )

@@ -20,7 +20,8 @@ import com.example.theme.R
 @Composable
 fun OverflowMenu(
     items: List<Action>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.End
 ) {
     // Sort items
     val actions = ArrayList<Action>()
@@ -54,7 +55,7 @@ fun OverflowMenu(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = horizontalArrangement
         ) {
             actions.forEach { action ->
                 if (width <= rowMaxWidth || action.showAsAction == ShowAsAction.ALWAYS) {
@@ -62,7 +63,6 @@ fun OverflowMenu(
                 } else {
                     needsOverflow = true
                     overflow.add(action)
-
 
                     if (isFirstOverflow) {
                         isFirstOverflow = false

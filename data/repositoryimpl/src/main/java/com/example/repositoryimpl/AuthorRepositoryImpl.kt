@@ -8,6 +8,12 @@ import kotlinx.coroutines.flow.Flow
 class AuthorRepositoryImpl(
     private val dao: AuthorDao
 ) : AuthorRepository {
+    override suspend fun getByFullName(
+        firstName: String,
+        middleName: String?,
+        lastName: String?
+    ): Author? = dao.getAuthorByFullName(firstName, middleName, lastName)
+
     override fun getAll(): Flow<List<Author>> = dao.getAuthors()
 
     override suspend fun getById(id: Long): Author? = dao.getAuthorById(id)

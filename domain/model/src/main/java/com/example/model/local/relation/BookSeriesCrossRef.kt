@@ -13,5 +13,5 @@ import androidx.room.Index
 data class BookSeriesCrossRef (
     @ColumnInfo(name = "book_id") val bookId: Long,
     @ColumnInfo(name = "series_id") val seriesId: Long,
-    @ColumnInfo(name = "part") val partOfSeries: Int
+    @ColumnInfo(name = "part") val partOfSeries: Int?
 )

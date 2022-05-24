@@ -1,5 +1,6 @@
 package com.example.books.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -20,15 +22,18 @@ import com.example.component.Action
 import com.example.component.OverflowMenu
 import com.example.component.ShowAsAction
 import com.example.model.dto.*
+import com.example.model.local.util.BookFormat
+import com.example.model.local.util.FileSize
 import com.example.theme.R
 
-
 @Composable
-fun BookCard(
-    book: BasicBookDto
+fun BookItemCard(
+    book: BasicBookDto,
+    onClick: () -> Unit
 ) {
     Card(
-        elevation = 10.dp
+        modifier = Modifier.clickable { onClick() },
+        elevation = 8.dp
     ) {
         Row(modifier = Modifier.height(dimensionResource(R.dimen.cover_height))) {
             BookCover(
@@ -49,8 +54,10 @@ fun BookCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp),
-                    progress = 0.75f
+                    progress = book.readingProgress
                 )
+//                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.weight(1f))
                 BookCardMenu(modifier = Modifier.align(Alignment.End))
             }
         }
@@ -61,7 +68,8 @@ fun BookCard(
 fun BookCardMenu(
     modifier: Modifier = Modifier
 ) {
-    OverflowMenu(listOf(
+    CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+        OverflowMenu(listOf(
             Action(
                 "Mark as finished",
                 Icons.Rounded.DoneAll,
@@ -93,8 +101,10 @@ fun BookCardMenu(
                 ShowAsAction.IF_ROOM
             ) {/*TODO*/ }
         ),
-        modifier
-    )
+            modifier,
+            Arrangement.spacedBy(16.dp)
+        )
+    }
 }
 
 @Composable
@@ -124,31 +134,29 @@ fun BookAuthorAndSeries(
     }
 
     series.forEach { item ->
-        authorAndSeries.append((item.name + " " + item.part).trimEnd() + ", ")
+        authorAndSeries.append((
+                item.name + if (item.part != null) " ${item.part}" else ""
+                ).trimEnd() + ", ")
     }
 
     BookMetadata(
-        text = authorAndSeries.substring(2).toString(),
+        text = authorAndSeries.substring(
+            0,
+            (authorAndSeries.length - 2)
+            .coerceAtLeast(0)
+        ).toString(),
         modifier = modifier
     )
 }
 
 @Composable
 fun BookFileMetadata(
-    file: BasicBookFileDto,
+    file: BasicBookFileDto?,
     modifier: Modifier = Modifier
 ) {
-    var fileMetadata: String
-    if(file.bookFormat.archiveFormat != null) {
-        fileMetadata = stringResource(R.string.file_in_archive)
-            .format(file.bookFormat.bookFormat, file.bookFormat.archiveFormat)
-            .trimEnd() + ", " + file.fileSize
-    } else {
-        fileMetadata = "${file.bookFormat.bookFormat}, ${file.fileSize}"
+    if (file != null) {
+        BookMetadata(text = "${file.bookFormat.bookFormat}, ${file.fileSize}", modifier = modifier)
     }
-
-
-    BookMetadata(text = fileMetadata, modifier = modifier)
 }
 
 @Composable
@@ -176,7 +184,7 @@ fun BookCover(
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        elevation = 4.dp
+        elevation = 1.dp
     ) {
         AsyncImage(
             modifier = Modifier
@@ -188,7 +196,7 @@ fun BookCover(
             contentScale = ContentScale.Crop,
             alignment = Alignment.TopCenter,
             contentDescription = stringResource(R.string.cover_description),
-            placeholder = painterResource(R.drawable.cover_placeholder)
+            placeholder = painterResource(R.drawable.placeholder)
         )
     }
 }
