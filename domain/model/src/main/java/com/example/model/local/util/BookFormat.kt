@@ -6,7 +6,7 @@ enum class BookFormat(
     val archiveFormat: ArchiveFormat? = null
 ) {
     PDF("pdf", "PDF"),
-//    FBZ("fbz", "FB2", ArchiveFormat.ZIP),
+    //    FBZ("fbz", "FB2", ArchiveFormat.ZIP),
 //    DOC("doc", "DOC"),
 //    DOCX("docx", "DOCX"),
 //    RTF("rtf", "RTF"),
@@ -14,4 +14,12 @@ enum class BookFormat(
 //    TXT("txt", "TXT"),
 //    FB2("fb2", "FB2"),
     EPUB("epub", "EPUB", ArchiveFormat.ZIP);
+
+    companion object {
+        val extensionsMap = mapOf(
+            *values()
+                .map { Pair(it.extension, it) }
+                .toTypedArray()
+        )
+    }
 }
