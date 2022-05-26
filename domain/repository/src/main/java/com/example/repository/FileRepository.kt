@@ -7,5 +7,5 @@ interface FileRepository : Repository<BookFile, Long> {
     fun getAllByBookId(id: Long): Flow<List<BookFile>>
 
     suspend fun getByPath(path: String): BookFile?
-    suspend fun getAllByPath(path: String): Flow<List<BookFile>>
+    suspend fun getAllByPath(path: String): List<BookFile>
 }

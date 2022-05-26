@@ -14,7 +14,7 @@ class FileRepositoryImpl(
 
     override suspend fun getByPath(path: String): BookFile? = dao.getFileByPath(path)
 
-    override suspend fun getAllByPath(path: String): Flow<List<BookFile>> = dao.getFilesByPath(path)
+    override suspend fun getAllByPath(path: String): List<BookFile> = dao.getFilesByPath(path)
 
     override suspend fun getById(id: Long): BookFile? = dao.getFileById(id)
 
