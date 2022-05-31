@@ -76,7 +76,11 @@ class ReadativeActivity : ComponentActivity() {
 
         permissionsLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
-                readPermissionGranted = permission ?: readPermissionGranted
+                if (permission) {
+                    readPermissionGranted = permission
+                    initContentObserver()
+                    loadBooksIntoDatabase()
+                }
             }
         updateOrRequestReadPermission()
         if (readPermissionGranted) {
@@ -116,54 +120,57 @@ class ReadativeActivity : ComponentActivity() {
     private fun loadBooksIntoDatabase() {
         lifecycleScope.launch {
             val books = loadBooksFromStorage()
-            val archives = loadArchivesFromStorage()
+//            val archives = loadArchivesFromStorage()
             for (content in books) {
-                val format = BookFormat.values().firstOrNull { it.extension == content.extension }
-                    ?: continue
+                val format = BookFormat.extensionsMap[content.extension] ?: continue
                 processBook(content.path, content.contentUri, format)
             }
-            for (content in archives) {
-                val format =
-                    ArchiveFormat.values().firstOrNull { it.extension == content.extension }
-                        ?: continue
-                val archive =
-                    Archive.Builder().setSource(File(content.path)).setFormat(format).build()
-                if (archive != null) {
-                    processArchive(File(content.path), tempDirectory(content.name), archive)
-                }
-            }
+//            for (content in archives) {
+//                val format =
+//                    ArchiveFormat.values().firstOrNull { it.extension == content.extension }
+//                        ?: continue
+//                val archive =
+//                    Archive.Builder().setSource(File(content.path)).setFormat(format).build()
+//                if (archive != null) {
+//                    processArchive(File(content.path), tempDirectory(content.name), archive)
+//                }
+//            }
             filesDir.resolve("temp").deleteRecursively()
         }
     }
 
     private suspend fun processBook(path: String, uri: Uri, format: BookFormat) {
-        val book = bookReader.readBook(uri, format) ?: return
-        if (book.size.value == 0f) return
-
-        val dbBook = appUseCases.getBookByChecksum(book.checksum)
         val dbFile = appUseCases.getBookFileByPath(path)
-        if (dbBook == null) {
-            val bookId = appUseCases.addBook(book.toBook())
-            book.metadata.authors.forEach { appUseCases.addAuthor(it.toAuthor()) }
-            appUseCases.addBookFile(
-                BookFile(
-                    0,
-                    bookId,
-                    path,
-                    book.size,
-                    format
+
+        if (dbFile == null) {
+            val book = bookReader.readBook(uri, format) ?: return
+            if (book.size.value == 0f) return
+
+            val dbBook = appUseCases.getBookByChecksum(book.checksum)
+            if (dbBook == null) {
+                val bookId = appUseCases.addBook(book.toBook())
+                book.metadata.authors.forEach { appUseCases.addAuthor(it.toAuthor()) }
+                appUseCases.addBookFile(
+                    BookFile(
+                        0,
+                        bookId,
+                        path,
+                        book.size,
+                        format
+                    )
                 )
-            )
-        } else if (dbFile == null) {
-            appUseCases.addBookFile(
-                BookFile(
-                    0,
-                    dbBook.id,
-                    path,
-                    book.size,
-                    format
+            } else {
+                appUseCases.addBookFile(
+                    BookFile(
+                        0,
+                        dbBook.id,
+                        path,
+                        book.size,
+                        format
+                    )
                 )
-            )
+            }
+            book.close()
         }
     }
 
@@ -275,7 +282,7 @@ class ReadativeActivity : ComponentActivity() {
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idColumn)
                     val mimeType = cursor.getString(mimeTypeColumn)
-                    val name = cursor.getString(nameColumn)
+                    val name = cursor.getString(nameColumn) ?: ""
                     val path = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         Environment.getExternalStorageDirectory()
                             .resolve(cursor.getString(pathColumn))

@@ -17,7 +17,7 @@ class ReadingReducer : Reducer<ReadingState, ReadingAction> {
 
     private fun stateAfterLoadingPagesSuccessful(
         action: ReadingAction.BookLoaded
-    ) = ReadingState.Loaded(action.pages)
+    ) = ReadingState.Loaded(action.source, action.information)
 
     private fun stateWhenLoadingPages() = ReadingState.Loading
 }

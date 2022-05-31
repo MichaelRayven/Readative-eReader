@@ -2,12 +2,9 @@ package com.example.reading
 
 import com.example.framework.mvi.Middleware
 import com.example.framework.mvi.Store
-import com.example.model.local.entity.BookFile
 import com.example.usecase.reading.ReadingUseCases
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class BookReadingMiddleware(
@@ -20,7 +17,7 @@ class BookReadingMiddleware(
     ) {
         when (action) {
             is ReadingAction.BookOpened -> {
-                loadPages(store, currentState, action)
+                loadPages(store, action)
             }
             else -> {}
         }
@@ -28,18 +25,24 @@ class BookReadingMiddleware(
 
     private suspend fun loadPages(
         store: Store<ReadingState, ReadingAction>,
-        currentState: ReadingState,
         action: ReadingAction.BookOpened
     ) {
         store.dispatch(ReadingAction.LoadingPages)
-        readingUseCases.getBookFiles(action.id).onEach { files ->
-            if (files.isNotEmpty()) {
-                val file = files.find { File(it.path).exists() }  ?: files[0]
-                val pages = readingUseCases.getBookPages(file.path)
-                store.dispatch(ReadingAction.BookLoaded(pages))
-            } else {
-                store.dispatch(ReadingAction.OpenedInvalidBook)
+        withContext(Dispatchers.IO) {
+            readingUseCases.getBookFiles(action.id).collect { files ->
+                if (files.isNotEmpty()) {
+                    val file = files.find { File(it.path).exists() }  ?: files[0]
+                    val contents = readingUseCases.getBookContents(file.path, action.width, action.height)
+                    val information = readingUseCases.getBook(action.id)
+                    if (information != null) {
+                        store.dispatch(ReadingAction.BookLoaded(contents, information))
+                    } else {
+                        store.dispatch(ReadingAction.OpenedInvalidBook)
+                    }
+                } else {
+                    store.dispatch(ReadingAction.OpenedInvalidBook)
+                }
             }
-        }.launchIn(MainScope())
+        }
     }
 }

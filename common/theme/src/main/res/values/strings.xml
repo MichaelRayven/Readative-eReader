@@ -5,4 +5,6 @@
     <string name="hide_dropdown">Close dropdown menu</string>
     <string name="show_dropdown">Open dropdown menu</string>
     <string name="file_in_archive">%s in %s</string>
+    <string name="storage_back">Go to previous folder</string>
+    <string name="loading">Loading…</string>
 </resources>
