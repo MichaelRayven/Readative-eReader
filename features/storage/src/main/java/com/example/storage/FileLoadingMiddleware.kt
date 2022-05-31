@@ -24,7 +24,7 @@ class FileLoadingMiddleware(
                     return
                 }
 
-                gatherFiles(store, currentState, action)
+                gatherFiles(store, action)
             }
             else -> {}
         }
@@ -32,15 +32,14 @@ class FileLoadingMiddleware(
 
     private suspend fun gatherFiles(
         store: Store<StorageState, StorageAction>,
-        currentState: StorageState,
         action: StorageAction.FolderClicked
     ) {
         store.dispatch(StorageAction.LoadingFiles)
 
-        storageUseCases.getFiles(action.path).onEach { ( books, folders, archives ) ->
+        storageUseCases.getFiles(action.path).let { ( books, folders, archives ) ->
             store.dispatch(StorageAction.FilesLoaded(
                 action.path, books, folders, archives
             ))
-        }.launchIn(MainScope())
+        }
     }
 }
