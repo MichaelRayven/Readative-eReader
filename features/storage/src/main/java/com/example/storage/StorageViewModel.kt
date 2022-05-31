@@ -2,6 +2,7 @@ package com.example.storage
 
 import android.os.Build
 import android.os.Environment
+import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -12,11 +13,14 @@ import com.example.usecase.files.StorageUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class StorageViewModel @Inject constructor(
-    storageUseCases: StorageUseCases
+    storageUseCases: StorageUseCases,
+    val storageVolumes: Array<File>
 ) : ViewModel() {
 
     private val store = Store(
@@ -30,14 +34,26 @@ class StorageViewModel @Inject constructor(
     val viewState: StateFlow<StorageState> = store.state
 
     init {
-        folderClicked(Environment.getExternalStorageDirectory().absolutePath)
+        homeClicked()
     }
 
-    fun folderClicked(path: String) {
-        val action = StorageAction.FolderClicked(path)
+    fun homeClicked() {
+        val action = StorageAction.HomeClicked(storageVolumes)
 
         viewModelScope.launch {
             store.dispatch(action)
+        }
+    }
+
+    fun folderClicked(path: String) {
+        if (!storageVolumes.any { path.startsWith(it.absolutePath) }) {
+            homeClicked()
+        } else {
+            val action = StorageAction.FolderClicked(path)
+
+            viewModelScope.launch {
+                store.dispatch(action)
+            }
         }
     }
 

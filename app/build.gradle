@@ -52,6 +52,7 @@ dependencies {
     implementation project(path: ':features:library')
     implementation project(path: ':features:reading')
     implementation project(path: ':features:storage')
+    implementation project(path: ':libraries:framework')
     implementation project(path: ':libraries:reader')
     implementation project(path: ':libraries:archives')
 
@@ -66,8 +67,8 @@ dependencies {
     // Animations
     implementation "androidx.compose.animation:animation:$compose_version"
     // Material Design and Icons
-    implementation "androidx.compose.material:material:1.2.0-beta01"
-    implementation "androidx.compose.material3:material3:1.0.0-alpha10"
+    implementation "androidx.compose.material:material:1.2.0-beta02"
+    implementation "androidx.compose.material3:material3:1.0.0-alpha12"
     implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     // Integration with activities
@@ -77,7 +78,7 @@ dependencies {
     // Integration with observables
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
     // Layouts
-    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
     // Navigation
     def nav_version = "2.4.2"
     implementation "androidx.navigation:navigation-compose:$nav_version"

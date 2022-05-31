@@ -4,18 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.NavigateNext
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.model.dto.ArchiveDto
-import com.example.model.dto.StorageFileDto
+import com.example.model.dto.*
 
 @Composable
 fun StorageItemCard(
@@ -32,10 +28,20 @@ fun StorageItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = if (file is ArchiveDto) {
-                    Icons.Filled.Archive
-                } else {
-                    Icons.Filled.Folder
+                imageVector =
+                when(file) {
+                    is ArchiveDto -> {
+                        Icons.Filled.Archive
+                    }
+                    is FolderDto -> {
+                        Icons.Filled.Folder
+                    }
+                    is StorageDestinationDto -> {
+                        Icons.Filled.SdCard
+                    }
+                    else -> {
+                        Icons.Filled.Folder
+                    }
                 },
                 contentDescription = null,
                 modifier = Modifier.size(32.dp)

@@ -23,7 +23,7 @@ class EpubMetadata(
         get() = source.subjects
     override val languages: List<ReadativeLanguage>
         get() {
-            return listOf(EpubLanguage(source.language))
+            return listOf(ReadativeLanguage(source.language))
         }
     override val published: OffsetDateTime
         get() {

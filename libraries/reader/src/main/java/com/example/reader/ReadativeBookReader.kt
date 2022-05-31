@@ -1,39 +1,31 @@
 package com.example.reader
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.ParcelFileDescriptor
-import android.os.ParcelFileDescriptor.MODE_READ_ONLY
-import android.os.ParcelFileDescriptor.MODE_READ_WRITE
 import com.example.model.local.util.BookFormat
 import com.example.reader.epub.EpubBook
 import com.example.reader.pdf.PdfBook
+import com.shockwave.pdfium.PdfiumCore
 import java.io.File
 
 class ReadativeBookReader(
-    private val context: Context
+    private val context: Context,
+    private val pdfiumCore: PdfiumCore
 ) {
     fun readBook(file: File): ReadativeBook? {
-        val format = BookFormat.values().firstOrNull { file.extension == it.extension }
-        return when (format) {
-            BookFormat.EPUB -> {
-                EpubBook(context.filesDir.toPath(), context, null, file)
-            }
-            BookFormat.PDF -> {
-                PdfBook(context.filesDir.toPath(), context, null, file)
-            }
-            else -> null
-        }
+        return readBook(
+            Uri.fromFile(file),
+            BookFormat.extensionsMap[file.extension]
+        )
     }
 
     fun readBook(uri: Uri, format: BookFormat?): ReadativeBook? {
         return when (format) {
             BookFormat.EPUB -> {
-                EpubBook(context.filesDir.toPath(), context, uri, null)
+                EpubBook(context, uri)
             }
             BookFormat.PDF -> {
-                PdfBook(context.filesDir.toPath(), context, uri, null)
+                PdfBook(context, pdfiumCore, uri)
             }
             else -> null
         }

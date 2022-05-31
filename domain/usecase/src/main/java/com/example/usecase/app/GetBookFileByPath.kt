@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 class GetBookFileByPath(
     private val repository: FileRepository
 ) {
-    suspend operator fun invoke(path: String): Flow<List<BookFile>> {
-        return repository.getAllByPath(path)
+    suspend operator fun invoke(path: String): BookFile? {
+        return repository.getByPath(path)
     }
 }

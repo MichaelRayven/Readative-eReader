@@ -15,10 +15,10 @@ interface FileDao {
     @Query("SELECT * FROM files WHERE id = :id")
     suspend fun getFileById(id: Long): BookFile?
 
-    @Query("SELECT * FROM files WHERE path LIKE :path")
-    fun getFilesByPath(path: String): Flow<List<BookFile>>
+    @Query("SELECT * FROM files WHERE path LIKE '%' || :path || '%'")
+    suspend fun getFilesByPath(path: String): List<BookFile>
 
-    @Query("SELECT * FROM files WHERE path LIKE :path")
+    @Query("SELECT * FROM files WHERE path LIKE '%' || :path || '%' LIMIT 1")
     suspend fun getFileByPath(path: String): BookFile?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

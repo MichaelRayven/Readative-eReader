@@ -1,4 +1,4 @@
-package com.example.usecase.books
+package com.example.usecase.common
 
 import com.example.model.local.result_entity.BookWithBasicInfo
 import com.example.model.local.result_entity.BookWithFullInfo

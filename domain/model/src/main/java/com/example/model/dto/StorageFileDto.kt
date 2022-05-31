@@ -22,3 +22,10 @@ data class FolderDto(
     override val name: String,
     override val bookCount: Int
 ) : Parcelable, StorageFileDto
+
+@Parcelize
+data class StorageDestinationDto(
+    override val name: String,
+    val path: String,
+    override val bookCount: Int
+) : Parcelable, StorageFileDto

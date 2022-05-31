@@ -1,14 +1,12 @@
 package com.example.usecase.files
 
-import com.example.model.dto.*
+import com.example.model.dto.ArchiveDto
+import com.example.model.dto.BasicBookDto
+import com.example.model.dto.FolderDto
 import com.example.model.dto.extension.toBasicBookDto
-import com.example.model.local.util.ArchiveFormat
 import com.example.model.local.util.BookFormat
-import com.example.reader.ReadativeBookReader
 import com.example.repository.BookRepository
 import com.example.repository.FileRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import java.io.File
 
@@ -16,42 +14,39 @@ class GetFiles(
     private val bookRepository: BookRepository,
     private val fileRepository: FileRepository
 ) {
-    operator fun invoke(path: String): Flow<Triple<List<BasicBookDto>, List<FolderDto>, List<ArchiveDto>>> {
+    suspend operator fun invoke(path: String): Triple<List<BasicBookDto>, List<FolderDto>, List<ArchiveDto>> {
         val books = mutableListOf<BasicBookDto>()
         val folders = mutableListOf<FolderDto>()
         val archives = mutableListOf<ArchiveDto>()
         val folder = File(path)
 
-        return flow {
-            folder.listFiles()?.forEach { file ->
-                if (!file.isHidden) {
-                    if (file.isDirectory) {
-                        var count = 0
-                        fileRepository.getAllByPath(file.path).onEach { count = it.size }
-                        folders.add(FolderDto(file.name, count))
-                    } else {
-                        val format =
-                            BookFormat.values().firstOrNull { file.extension == it.extension }
-                        val archiveFormat =
-                            ArchiveFormat.values().firstOrNull { file.extension == it.extension }
-                        if (format != null) {
-                            val dbFile = fileRepository.getByPath(file.path)
-                            val bookWithInfo = dbFile?.bookId?.let {
-                                bookRepository.getByIdWithBasicInfo(
-                                    it
-                                )
-                            }
-                            bookWithInfo?.toBasicBookDto()?.let { books.add(it) }
-                        } else if (archiveFormat != null) {
+        folder.listFiles()?.forEach { file ->
+            if (!file.isHidden) {
+                if (file.isDirectory) {
+                    val count = fileRepository.getAllByPath(file.path).size
+                    folders.add(FolderDto(file.name, count))
+                } else {
+                    val format = BookFormat.extensionsMap[file.extension]
+//                      val archiveFormat = ArchiveFormat.extensionsMap[file.extension]
+                    if (format != null) {
+                        val dbFile = fileRepository.getByPath(file.path)
+                        val bookWithInfo = dbFile?.bookId?.let {
+                            bookRepository.getByIdWithBasicInfo(
+                                it
+                            )
+                        }
+                        bookWithInfo?.toBasicBookDto()?.let { books.add(it) }
+                    }
+                    /*else if (archiveFormat != null) {
                             var count = 0
                             fileRepository.getAllByPath(file.path).onEach { count = it.size }
                             archives.add(ArchiveDto(file.name, count, archiveFormat))
-                        }
-                    }
+                        }*/
                 }
-                emit(Triple(books, folders, archives))
             }
+
         }
+        return Triple(books, folders, archives)
     }
 //
 //    private suspend fun processFolder(file: File): FolderDto {

@@ -1,12 +1,13 @@
 package com.example.storage
 
 import com.example.framework.mvi.State
-import com.example.model.dto.ArchiveDto
-import com.example.model.dto.BasicBookDto
-import com.example.model.dto.FolderDto
+import com.example.model.dto.*
 
 
 sealed class StorageState : State {
+    data class Home(
+        val destinations: List<StorageDestinationDto>
+    ) : StorageState()
     object Loading : StorageState()
     data class Loaded(
         val currentLocation: String,
