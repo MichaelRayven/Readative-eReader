@@ -4,7 +4,7 @@ import com.example.reader.ReadativeAuthor
 import nl.siegmann.epublib.domain.Author
 
 class EpubAuthor(
-    val source: Author,
+    private val source: Author,
 ): ReadativeAuthor {
     override val firstName: String
         get() {
