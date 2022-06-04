@@ -19,7 +19,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.library.LibraryScreen
+import com.example.local.dao.ReviewDao
+import com.example.readative.ReadativeSurface
 import com.example.reading.ReadingScreen
+import com.example.search.SearchScreen
 import com.example.storage.StorageScreen
 import com.example.theme.R
 
@@ -63,7 +66,12 @@ fun Navigation(
             route = ReadativeScreen.ReadingScreen.route + "/{book_id}",
             arguments = listOf(navArgument("book_id") { type = NavType.LongType })
         ) {
-            it.arguments?.getLong("book_id")?.let { id -> ReadingScreen(id) }
+            it.arguments?.getLong("book_id")?.let { id -> ReadingScreen(id, navController) }
+        }
+        composable(
+            route = ReadativeScreen.SearchScreen.route
+        ) {
+            SearchScreen(navController)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.readative.navigation
+package com.example.readative
 
 import android.Manifest
 import android.content.ContentUris
@@ -8,17 +8,16 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.ParcelFileDescriptor
-import android.os.ParcelFileDescriptor.*
 import android.provider.MediaStore
-import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GridView
@@ -27,27 +26,27 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Image
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.archives.Archive
-import com.example.model.local.entity.Book
 import com.example.model.local.entity.BookFile
 import com.example.model.local.util.ArchiveFormat
 import com.example.model.local.util.BookFormat
-import com.example.model.local.util.FileSize
+import com.example.readative.navigation.Navigation
+import com.example.readative.navigation.ReadativeScreen
 import com.example.readative.theme.ReadativeTheme
-import com.example.reader.ReadativeBook
 import com.example.reader.ReadativeBookReader
 import com.example.theme.R
 import com.example.usecase.app.AppUseCases
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -183,8 +182,8 @@ class ReadativeActivity : ComponentActivity() {
                     val path = archive.extractEntry(tempDir, input, archiveEntry)
                         ?: return@forEach
                     val format = ArchiveFormat.values().firstOrNull {
-                            it.extension == path.substringAfterLast('.', "")
-                        } ?: return@forEach
+                        it.extension == path.substringAfterLast('.', "")
+                    } ?: return@forEach
 
                     val archiveInner = Archive
                         .Builder()
@@ -376,7 +375,8 @@ fun ReadativeTopBar(
         title = { Text("Readative") },
         navigationIcon = {
             IconButton(onClick = { /*TODO*/ }) {
-                Icon(
+                Image(
+                    modifier = Modifier.size(42.dp),
                     painter = painterResource(R.drawable.ic_logotype),
                     contentDescription = null
                 )
@@ -395,7 +395,7 @@ fun ReadativeTopBar(
                     contentDescription = null
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { navController.navigate(ReadativeScreen.SearchScreen.route) }) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = null
