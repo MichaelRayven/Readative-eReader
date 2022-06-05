@@ -14,9 +14,19 @@ sealed class ReadingAction : Action {
     object BookClosed : ReadingAction()
     object LoadingPages : ReadingAction()
     data class BookLoaded(val source: ReadativeBookContent, val information: BookWithFullInfo) : ReadingAction()
-    data class TextToSpeechPlayClicked(
-        val id: Long,
+    object OpenedInvalidBook : ReadingAction()
+
+    data class TextToSpeechAdd(
         val text: String
         ): ReadingAction()
-    object OpenedInvalidBook : ReadingAction()
+    object TextToSpeechReset: ReadingAction()
+    object TextToSpeechPause: ReadingAction()
+    object TextToSpeechResume: ReadingAction()
+    object TextToSpeechStart: ReadingAction()
+    data class TextToSpeechNextClicked(
+        val count: Int
+    ): ReadingAction()
+    data class TextToSpeechPrevClicked(
+        val count: Int
+    ): ReadingAction()
 }

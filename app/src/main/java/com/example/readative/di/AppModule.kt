@@ -27,6 +27,8 @@ import com.example.usecase.reading.GetBookContents
 import com.example.usecase.reading.GetBookFilesByBookId
 import com.example.usecase.reading.GetBookPages
 import com.example.usecase.reading.ReadingUseCases
+import com.example.usecase.search.SearchForBooksWithBasicInfo
+import com.example.usecase.search.SearchUseCases
 import com.shockwave.pdfium.PdfiumCore
 import dagger.Module
 import dagger.Provides
@@ -120,6 +122,22 @@ object AppModule {
         )
     }
 
+    @Provides
+    @Singleton
+    fun provideBookFtsRepository(db: ReadativeDatabase): BookFtsRepository {
+        return BookFtsRepositoryImpl(db.bookFtsDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchUseCases(
+        bookFtsRepository: BookFtsRepository
+    ): SearchUseCases {
+        return SearchUseCases(
+            SearchForBooksWithBasicInfo(bookFtsRepository)
+        )
+    }
+
 //    @Provides
 //    fun providePdfiumCore(app: Application): PdfiumCore {
 //        return PdfiumCore(app.applicationContext)
@@ -195,17 +213,10 @@ object AppModule {
 
     @Provides
     fun provideTTSMiddleware(
-        app: Application,
-        readingUseCases: ReadingUseCases,
-        tts: TextToSpeech,
-        @Named("Files Dir")
-        filesDir: File
+        tts: TextToSpeech
     ): TTSMiddleware {
         return TTSMiddleware(
-            readingUseCases,
-            tts,
-            filesDir,
-            app.applicationContext
+            tts
         )
     }
 

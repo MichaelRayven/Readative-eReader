@@ -28,6 +28,7 @@ fun StorageScreen(
     viewModel: StorageViewModel = hiltViewModel()
 ) {
     val state: StorageState = viewModel.viewState.collectAsState().value
+
     when(state) {
         is StorageState.Loading -> {
             Box(

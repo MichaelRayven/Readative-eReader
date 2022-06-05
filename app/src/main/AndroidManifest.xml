@@ -18,9 +18,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
         android:theme="@style/Theme.Readative">
         <activity
-            android:name=".navigation.ReadativeActivity"
+            android:name=".ReadativeActivity"
             android:exported="true"
             android:theme="@style/Theme.Readative">
             <meta-data

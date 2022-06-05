@@ -2,6 +2,8 @@ package com.example.readative.theme
 
 import androidx.compose.ui.graphics.Color
 
+val Transparent = Color(0x00000000)
+
 val Yellow300 = Color(0xFFFFC100)
 val Yellow200 = Color(0xFFFACB62)
 val Yellow100 = Color(0xFFFCDAA5)

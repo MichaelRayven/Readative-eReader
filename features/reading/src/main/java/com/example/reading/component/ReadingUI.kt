@@ -1,62 +1,55 @@
 package com.example.reading.component
 
-import android.speech.tts.TextToSpeech
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.constraintlayout.compose.ConstraintLayout
-import com.example.reading.util.ProgressHolder
+import com.example.reading.ReadingUiState
+import com.example.reading.util.ReadingProgress
 import kotlin.math.roundToInt
 
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun ReadingOverlay(
-    onPlayClick: () -> Unit,
-    currentPage: MutableState<Int>,
-    pageCount: MutableState<Int>,
-    content: @Composable (Modifier) -> Unit
+fun ReadingScaffold(
+    uiState: ReadingUiState,
+    content: @Composable () -> Unit
 ) {
-    var showUi by remember { mutableStateOf(true) }
     val interactionSource = remember { MutableInteractionSource() }
 
-    ConstraintLayout(
+    Scaffold(
         modifier = Modifier.clickable(
             indication = null,
             interactionSource = interactionSource
         ) {
-            showUi = !showUi
+            uiState.showUi.value = !uiState.showUi.value
+        },
+        scaffoldState = uiState.scaffoldState,
+        bottomBar = {
+            if (uiState.showUi.value) {
+                ReadingBottomBar(
+                    uiState = uiState
+                )
+            }
         }
     ) {
-        val (readingTopBar, readingBottomBar, readingView) = createRefs()
-
-        content(
-            Modifier
-                .constrainAs(readingView) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                }
-                .fillMaxSize(1f))
-        if (showUi) {
-            ReadingTopBar(Modifier.constrainAs(readingTopBar) {
-                top.linkTo(parent.top)
-            }, onPlayClick)
-            ReadingBottomBar(
-                modifier = Modifier.constrainAs(readingBottomBar) {
-                    bottom.linkTo(parent.bottom)
-                },
-                value = currentPage.value.toFloat(),
-                valueRange = 1f..pageCount.value.toFloat()
-//                onValueChange = { currentPage.value = it.roundToInt() }
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxSize(1f)
+        ) {
+            content()
+            if  (uiState.showUi.value) {
+                ReadingTopBar(
+                    modifier = Modifier.fillMaxWidth(1f),
+                    uiState
+                )
+            }
         }
     }
 }
@@ -64,19 +57,32 @@ fun ReadingOverlay(
 @Composable
 fun ReadingTopBar(
     modifier: Modifier = Modifier,
-    onPlayClick: () -> Unit
+    uiState: ReadingUiState
 ) {
     TopAppBar(
         modifier = modifier,
         navigationIcon = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { uiState.navController.popBackStack() }) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = null)
             }
         },
         title = {},
         actions = {
-            IconButton(onClick = onPlayClick) {
-                Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
+            IconButton(onClick = { uiState.horizontalView.value = !uiState.horizontalView.value }) {
+                Icon(imageVector = Icons.Filled.RotateRight, contentDescription = null)
+            }
+            IconButton(onClick = { uiState.prevTTS(5) }) {
+                Icon(imageVector = Icons.Filled.SkipPrevious, contentDescription = null)
+            }
+            IconButton(onClick = { uiState.playTTS.value = !uiState.playTTS.value }) {
+                if (uiState.playTTS.value) {
+                    Icon(imageVector = Icons.Filled.Pause, contentDescription = null)
+                } else {
+                    Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
+                }
+            }
+            IconButton(onClick = { uiState.nextTTS(5) }) {
+                Icon(imageVector = Icons.Filled.SkipNext, contentDescription = null)
             }
         }
     )
@@ -85,9 +91,7 @@ fun ReadingTopBar(
 @Composable
 fun ReadingBottomBar(
     modifier: Modifier = Modifier,
-    value: Float,
-    valueRange: ClosedFloatingPointRange<Float>
-//    onValueChange: (Float) -> Unit
+    uiState: ReadingUiState
 ) {
     BottomAppBar(
         modifier = modifier
@@ -96,16 +100,27 @@ fun ReadingBottomBar(
             Modifier.fillMaxWidth(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "${value.toInt()} of ${valueRange.endInclusive.toInt()}")
-//            Slider(
-//                value = value,
-//                onValueChange = onValueChange,
-//                valueRange = valueRange,
-//                colors = SliderDefaults.colors(
-//                    thumbColor = MaterialTheme.colors.secondary,
-//                    activeTrackColor = MaterialTheme.colors.secondary
-//                )
-//            )
+            PageSlider(
+                readingProgress = uiState.readingProgress.value,
+                onValueChange = {uiState.readingProgress.value = uiState.readingProgress.value.copy(currentPage = it)}
+            )
         }
     }
+}
+
+@Composable
+fun PageSlider(
+    readingProgress: ReadingProgress,
+    onValueChange: (Int) -> Unit
+) {
+    Text(text = "${readingProgress.currentPage} of ${readingProgress.pageCount}")
+    Slider(
+        value = readingProgress.currentPage.toFloat(),
+        valueRange = 1f..readingProgress.pageCount.toFloat(),
+        onValueChange = { onValueChange(it.roundToInt()) },
+        colors = SliderDefaults.colors(
+            thumbColor = MaterialTheme.colors.secondary,
+            activeTrackColor = MaterialTheme.colors.secondary
+        )
+    )
 }

@@ -52,6 +52,7 @@ dependencies {
     implementation project(path: ':features:library')
     implementation project(path: ':features:reading')
     implementation project(path: ':features:storage')
+    implementation project(path: ':features:search')
     implementation project(path: ':libraries:framework')
     implementation project(path: ':libraries:reader')
     implementation project(path: ':libraries:archives')
