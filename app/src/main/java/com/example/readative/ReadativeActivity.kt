@@ -1,8 +1,6 @@
 package com.example.readative
 
-import android.Manifest
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.Manifest.permission.*
 import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +12,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
+import android.view.View
+import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -62,9 +61,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ReadativeActivity : ComponentActivity() {
-    private var readPermissionGranted = false
     private var managePermissionGranted = false
-    private lateinit var permissionsLauncher: ActivityResultLauncher<String>
+
+    private lateinit var permissionsLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     private val namespaceData = mutableMapOf<String, Int>()
@@ -83,16 +82,10 @@ class ReadativeActivity : ComponentActivity() {
             }
         }
 
-//        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView) ?: return
-//        windowInsetsController.systemBarsBehavior =
-//            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-
-
         permissionsLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
-                if (permission) {
-                    readPermissionGranted = permission
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                if (permissions[READ_EXTERNAL_STORAGE] == true && permissions[WRITE_EXTERNAL_STORAGE] == true) {
+                    managePermissionGranted = true
                     initContentObserver()
                     loadBooksIntoDatabase()
                 }
@@ -100,19 +93,39 @@ class ReadativeActivity : ComponentActivity() {
         activityResultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (SDK_INT >= Build.VERSION_CODES.R) {
-                if (Environment.isExternalStorageManager()) {
-
-                }
+                managePermissionGranted = Environment.isExternalStorageManager()
+                initContentObserver()
+                loadBooksIntoDatabase()
             }
         }
+
         updateOrRequestReadPermission()
-//        if (readPermissionGranted) {
-//            initContentObserver()
-//            loadBooksIntoDatabase()
-//        }
         if (managePermissionGranted) {
             initContentObserver()
             loadBooksIntoDatabase()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView)
+        windowInsetsController?.let {
+            // Configure the behavior of the hidden system bars
+            windowInsetsController.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // Hide both the status bar and the navigation bar
+            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        }
+
+
+        if (windowInsetsController == null) {
+            val flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            window.decorView.systemUiVisibility = flags;
         }
     }
 
@@ -131,29 +144,20 @@ class ReadativeActivity : ComponentActivity() {
                 activityResultLauncher.launch(intent)
             }
         } else {
-            permissionsLauncher.launch(WRITE_EXTERNAL_STORAGE)
+            permissionsLauncher.launch(arrayOf(READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE))
         }
     }
 
     private fun updateOrRequestReadPermission() {
         val hasManagePermission = if (SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager();
+            Environment.isExternalStorageManager()
         } else {
             ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
             ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         }
 
-//        val hasReadPermission = ContextCompat.checkSelfPermission(
-//            this,
-//            Manifest.permission.READ_EXTERNAL_STORAGE
-//        ) == PackageManager.PERMISSION_GRANTED
-
-//        readPermissionGranted = hasReadPermission
         managePermissionGranted = hasManagePermission
 
-//        if (!readPermissionGranted) {
-//            permissionsLauncher.launch(READ_EXTERNAL_STORAGE)
-//        }
         if (!managePermissionGranted) {
             requestPermission()
         }
@@ -162,7 +166,7 @@ class ReadativeActivity : ComponentActivity() {
     private fun initContentObserver() {
         val contentObserver = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
-                if (readPermissionGranted) {
+                if (managePermissionGranted) {
                     loadBooksIntoDatabase()
                 }
             }
@@ -288,13 +292,13 @@ class ReadativeActivity : ComponentActivity() {
     private suspend fun loadContentByMimeTypes(mimeTypes: Array<String>): List<Content> {
         return withContext(Dispatchers.IO)
         {
-            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val collection = if (SDK_INT >= Build.VERSION_CODES.Q) {
                 MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
             } else {
                 MediaStore.Files.getContentUri("external")
             }
 
-            val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val projection = if (SDK_INT >= Build.VERSION_CODES.Q) {
                 arrayOf(
                     MediaStore.Files.FileColumns._ID,
                     MediaStore.Files.FileColumns.MIME_TYPE,
@@ -330,7 +334,7 @@ class ReadativeActivity : ComponentActivity() {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
                 val mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
                 val nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME)
-                val pathColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val pathColumn = if (SDK_INT >= Build.VERSION_CODES.Q) {
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
                 } else {
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA)
@@ -340,7 +344,7 @@ class ReadativeActivity : ComponentActivity() {
                     val id = cursor.getLong(idColumn)
                     val mimeType = cursor.getString(mimeTypeColumn)
                     val name = cursor.getString(nameColumn) ?: ""
-                    val path = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val path = if (SDK_INT >= Build.VERSION_CODES.Q) {
                         Environment.getExternalStorageDirectory()
                             .resolve(cursor.getString(pathColumn))
                             .resolve(name)
@@ -470,7 +474,7 @@ fun ReadativeBottomNav(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    BottomNavigation() {
+    BottomNavigation {
         BottomNavigationItem(
             selected = currentRoute == ReadativeScreen.LibraryScreen.route,
             icon = {

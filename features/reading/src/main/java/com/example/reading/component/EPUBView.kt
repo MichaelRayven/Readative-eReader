@@ -225,7 +225,7 @@ fun WebView.scrollToPage(
     pageInd: Int
 ) {
     if (horizontal) {
-        this.scrollTo((this.width + 2) * pageInd, 0)
+        this.scrollTo(this.width* pageInd, 0)
         sync(this.scrollX.toFloat())
     } else {
         this.scrollTo(0, this.height * pageInd)
@@ -239,7 +239,7 @@ fun WebView.smoothScrollToPage(
     pageInd: Int
 ) {
     if (horizontal) {
-        val newScrollX = ((this.width + 2) * pageInd)
+        val newScrollX = (this.width * pageInd)
         this.scrollY = 0
         val anim = ObjectAnimator.ofInt(
             this,
