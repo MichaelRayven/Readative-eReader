@@ -39,25 +39,23 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation project(path: ':features:books')
-
-    /* Jetpack Compose dependencies */
-    implementation "androidx.compose.ui:ui:1.2.0-beta02"
-    implementation 'com.google.android.material:material:1.6.0'
     implementation project(path: ':libraries:reader')
     implementation project(path: ':libraries:framework')
     implementation project(path: ':domain:usecase')
     implementation project(path: ':domain:model')
+
+    /* Jetpack Compose dependencies */
+    implementation "androidx.compose.ui:ui:$compose_version"
     // Tooling support (Previews, etc.)
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
-    implementation "androidx.compose.foundation:foundation:1.2.0-beta02"
+    implementation "androidx.compose.foundation:foundation:$compose_version"
     // Animations
     implementation "androidx.compose.animation:animation:$compose_version"
     // Material Design and Icons
-    implementation "androidx.compose.material:material:1.2.0-beta02"
-    implementation "androidx.compose.material3:material3:1.0.0-alpha12"
-    implementation "androidx.compose.material:material-icons-core:1.2.0-beta02"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     // Integration with activities
     implementation 'androidx.activity:activity-compose:1.4.0'

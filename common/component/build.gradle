@@ -41,7 +41,6 @@ dependencies {
 
     /* Jetpack Compose dependencies */
     implementation "androidx.compose.ui:ui:$compose_version"
-    implementation 'com.google.android.material:material:1.6.0'
     // Tooling support (Previews, etc.)
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
@@ -50,8 +49,7 @@ dependencies {
     // Animations
     implementation "androidx.compose.animation:animation:$compose_version"
     // Material Design and Icons
-    implementation "androidx.compose.material:material:1.2.0-alpha08"
-    implementation "androidx.compose.material3:material3:1.0.0-alpha10"
+    implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     // Integration with activities
@@ -61,5 +59,5 @@ dependencies {
     // Integration with observables
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
     // Layouts
-    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0"
+    implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 }

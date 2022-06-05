@@ -14,7 +14,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -22,8 +21,6 @@ import com.example.component.Action
 import com.example.component.OverflowMenu
 import com.example.component.ShowAsAction
 import com.example.model.dto.*
-import com.example.model.local.util.BookFormat
-import com.example.model.local.util.FileSize
 import com.example.theme.R
 
 @Composable

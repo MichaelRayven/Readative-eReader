@@ -21,7 +21,9 @@ fun LibraryScreen(
     var selected by remember { mutableStateOf(0) }
     val titles = listOf("All books", "Reading", "Shelves")
 
-    Column {
+    Column(
+        modifier = modifier
+    ) {
         TabRow(selectedTabIndex = selected) {
             titles.forEachIndexed { index, title ->
                 Tab(

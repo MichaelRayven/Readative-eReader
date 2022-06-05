@@ -1,14 +1,19 @@
 package com.example.readative
 
 import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.ContentUris
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.Settings
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,9 +31,9 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -54,10 +59,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class ReadativeActivity : ComponentActivity() {
     private var readPermissionGranted = false
+    private var managePermissionGranted = false
     private lateinit var permissionsLauncher: ActivityResultLauncher<String>
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     private val namespaceData = mutableMapOf<String, Int>()
 
@@ -69,18 +77,17 @@ class ReadativeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val windowInsetsController =
-            ViewCompat.getWindowInsetsController(window.decorView) ?: return
-        windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-
         setContent {
             ReadativeTheme {
                 ReadativeApp()
             }
         }
+
+//        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView) ?: return
+//        windowInsetsController.systemBarsBehavior =
+//            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
 
         permissionsLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
@@ -90,23 +97,65 @@ class ReadativeActivity : ComponentActivity() {
                     loadBooksIntoDatabase()
                 }
             }
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+
+                }
+            }
+        }
         updateOrRequestReadPermission()
-        if (readPermissionGranted) {
+//        if (readPermissionGranted) {
+//            initContentObserver()
+//            loadBooksIntoDatabase()
+//        }
+        if (managePermissionGranted) {
             initContentObserver()
             loadBooksIntoDatabase()
         }
     }
 
+    private fun requestPermission() {
+        if (SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.addCategory("android.intent.category.DEFAULT")
+                intent.data =
+                    Uri.parse(String.format("package:%s", applicationContext.packageName))
+
+                activityResultLauncher.launch(intent)
+            } catch (e: Exception) {
+                val intent = Intent()
+                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                activityResultLauncher.launch(intent)
+            }
+        } else {
+            permissionsLauncher.launch(WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     private fun updateOrRequestReadPermission() {
-        val hasReadPermission = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasManagePermission = if (SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager();
+        } else {
+            ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
 
-        readPermissionGranted = hasReadPermission
+//        val hasReadPermission = ContextCompat.checkSelfPermission(
+//            this,
+//            Manifest.permission.READ_EXTERNAL_STORAGE
+//        ) == PackageManager.PERMISSION_GRANTED
 
-        if (!readPermissionGranted) {
-            permissionsLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        readPermissionGranted = hasReadPermission
+        managePermissionGranted = hasManagePermission
+
+//        if (!readPermissionGranted) {
+//            permissionsLauncher.launch(READ_EXTERNAL_STORAGE)
+//        }
+        if (!managePermissionGranted) {
+            requestPermission()
         }
     }
 
@@ -378,7 +427,7 @@ fun ReadativeTopBar(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val screen = ReadativeScreen.fromRoute(currentRoute)
+//    val screen = ReadativeScreen.fromRoute(currentRoute)
 
     TopAppBar(
         title = { Text("Readative") },

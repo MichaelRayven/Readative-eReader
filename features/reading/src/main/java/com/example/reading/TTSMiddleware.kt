@@ -1,18 +1,12 @@
 package com.example.reading
 
-import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.example.framework.mvi.Middleware
 import com.example.framework.mvi.Store
-import com.example.usecase.reading.ReadingUseCases
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.single
-import java.io.File
 
 class TTSMiddleware(
     private val tts: TextToSpeech
@@ -31,7 +25,7 @@ class TTSMiddleware(
     ) {
         when (action) {
             is ReadingAction.TextToSpeechAdd -> {
-                addToTTS(store, action)
+                addToTTS(action)
             }
             is ReadingAction.TextToSpeechReset -> {
                 resetTTS()
@@ -74,7 +68,6 @@ class TTSMiddleware(
     }
 
     private fun addToTTS(
-        store: Store<ReadingState, ReadingAction>,
         action: ReadingAction.TextToSpeechAdd
     ) {
         tts.setOnUtteranceProgressListener(this@TTSMiddleware)
