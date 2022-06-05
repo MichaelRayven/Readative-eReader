@@ -41,6 +41,12 @@ sealed class ReadativeScreen(
         Icons.Outlined.ImportContacts,
         Icons.Filled.ImportContacts
     )
+    object SearchScreen : ReadativeScreen(
+        "search_screen",
+        "Search",
+        Icons.Outlined.Search,
+        Icons.Filled.Search
+    )
 
     companion object {
         fun fromRoute(route: String?): ReadativeScreen? {

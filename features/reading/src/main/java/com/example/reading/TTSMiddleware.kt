@@ -1,28 +1,22 @@
 package com.example.reading
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import com.example.framework.mvi.Middleware
 import com.example.framework.mvi.Store
-import com.example.reading.service.AudioBookService
-import com.example.usecase.reading.ReadingUseCases
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.*
+import kotlinx.coroutines.channels.Channel
 
 class TTSMiddleware(
-    private val readingUseCases: ReadingUseCases,
-    private val tts: TextToSpeech,
-    private val filesDir: File,
-    private val context: Context
+    private val tts: TextToSpeech
 ) : Middleware<ReadingState, ReadingAction>, UtteranceProgressListener() {
-    lateinit var audioFile: File
+    private val channel = Channel<Unit>(0)
+    private var notified = false
+
+    private var currentTextId = 0
+
+    private val sentences = mutableListOf<String>()
 
     override suspend fun process(
         action: ReadingAction,
@@ -30,68 +24,113 @@ class TTSMiddleware(
         store: Store<ReadingState, ReadingAction>
     ) {
         when (action) {
-            is ReadingAction.TextToSpeechPlayClicked -> {
-                runTTS(store, action)
+            is ReadingAction.TextToSpeechAdd -> {
+                addToTTS(action)
+            }
+            is ReadingAction.TextToSpeechReset -> {
+                resetTTS()
+            }
+            is ReadingAction.TextToSpeechPause -> {
+                pauseTTS()
+            }
+            is ReadingAction.TextToSpeechResume -> {
+                resumeTTS()
+            }
+            is ReadingAction.TextToSpeechStart -> {
+                startTTS()
+            }
+            is ReadingAction.TextToSpeechNextClicked -> {
+                nextTTS(action)
+            }
+            is ReadingAction.TextToSpeechPrevClicked -> {
+                prevTTS(action)
             }
             else -> {}
         }
     }
 
-    private suspend fun runTTS(
-        store: Store<ReadingState, ReadingAction>,
-        action: ReadingAction.TextToSpeechPlayClicked
-    ) {
-        withContext(Dispatchers.IO) {
-//            audioFile = readingUseCases.getBook(action.id)?.book?.checksum?.let {
-//                filesDir.resolve("audio").resolve("$it.wav")
-//            } ?: throw Exception("Called Text-To-Speech on uninitialized document")
-//            audioFile.parentFile?.mkdirs()
-//            if (!audioFile.exists()) {
-//                tts.setOnUtteranceProgressListener(this@TTSMiddleware)
-//                tts.language = Locale.ENGLISH
-//
-//                val bundleTts = Bundle()
-//                bundleTts.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, audioFile.name)
-//
-//                tts.synthesizeToFile(
-//                    "111111111",
-//                    bundleTts,
-//                    audioFile,
-//                    audioFile.name
-//                )
-//            }
-            tts.speak(
-                "",
-                TextToSpeech.QUEUE_FLUSH,
-                Bundle(),
-                "0"
-            )
-            tts.setOnUtteranceProgressListener(this@TTSMiddleware)
-            tts.language = Locale.US
+    private fun resetTTS() {
+        currentTextId = 0
+        tts.stop()
+    }
 
-            val texts = action.text.split(Regex("(?<=\\.)"))
-            for (i in texts.indices) {
-                tts.speak(
-                    texts[i],
-                    TextToSpeech.QUEUE_ADD,
-                    Bundle(),
-                    i.toString()
-                )
-            }
+    private suspend fun startTTS() {
+        wait()
+        currentTextId = 0
+        if (sentences.size > 0) {
+            tts.speak(
+                sentences[0],
+                TextToSpeech.QUEUE_ADD,
+                Bundle(),
+                0.toString()
+            )
         }
+    }
+
+    private fun addToTTS(
+        action: ReadingAction.TextToSpeechAdd
+    ) {
+        tts.setOnUtteranceProgressListener(this@TTSMiddleware)
+
+        val texts = action.text.split(Regex("(?<=[.!?:]\\s)"))
+        sentences.addAll(texts)
+        notifyChannel()
+    }
+
+    private fun pauseTTS() {
+        currentTextId = (currentTextId- 1).coerceAtLeast(0)
+        tts.stop()
+    }
+
+    private fun resumeTTS() {
+        if (sentences.size > currentTextId) {
+            tts.speak(
+                sentences[currentTextId],
+                TextToSpeech.QUEUE_ADD,
+                Bundle(),
+                currentTextId.toString()
+            )
+        }
+    }
+
+    private fun nextTTS(action: ReadingAction.TextToSpeechNextClicked) {
+        currentTextId = maxOf(0, minOf(currentTextId + action.count - 1, sentences.size - 1))
+        tts.stop()
+        resumeTTS()
+    }
+
+    private fun prevTTS(action: ReadingAction.TextToSpeechPrevClicked) {
+        currentTextId = maxOf(0, minOf(currentTextId - action.count - 1, sentences.size - 1))
+        tts.stop()
+        resumeTTS()
     }
 
     override fun onStart(utteranceId: String?) {
     }
 
     override fun onDone(utteranceId: String?) {
-//        Intent(context, AudioBookService::class.java).also { intent ->
-//            intent.putExtra(AudioBookService.URI_EXTRA, Uri.fromFile(audioFile))
-//            context.startService(intent)
-//        }
+        currentTextId += 1
+        if (sentences.size > currentTextId) {
+            tts.speak(
+                sentences[currentTextId],
+                TextToSpeech.QUEUE_ADD,
+                Bundle(),
+                currentTextId.toString()
+            )
+        } else {
+            pauseTTS()
+        }
     }
 
     override fun onError(utteranceId: String?) {
         Log.e("TTS", "Error")
+    }
+
+    suspend fun wait() {
+        channel.receive()
+    }
+
+    fun notifyChannel() {
+        channel.trySend(Unit).isSuccess
     }
 }

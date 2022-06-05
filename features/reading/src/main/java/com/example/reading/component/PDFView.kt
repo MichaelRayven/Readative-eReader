@@ -3,112 +3,168 @@ package com.example.reading.component
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.graphicsLayer
 import com.example.reader.ReadativeBookContent
-import com.example.reading.util.ProgressHolder
+import com.example.reader.ReadativePage
+import com.example.reader.pdf.PdfBook
+import com.example.reading.ReadingUiState
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.VerticalPager
 import com.google.accompanist.pager.rememberPagerState
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.StringBuilder
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun PDFView(
     modifier: Modifier = Modifier,
     source: ReadativeBookContent.PDFContents,
-    currentPage: MutableState<Int>,
-    pageCount: MutableState<Int>,
-    collectText: Boolean,
-    textInput: MutableState<String>,
+    uiState: ReadingUiState,
     horizontal: Boolean = false
 ) {
-    val pagerState = rememberPagerState(currentPage.value - 1)
-    var canCollectText by remember { mutableStateOf(true) }
-    val configuration = LocalConfiguration.current
+    val pagerState = rememberPagerState(uiState.readingProgress.value.currentPage - 1)
 
     LaunchedEffect(pagerState) {
-        pageCount.value = source.contents.size
-//        snapshotFlow { currentPage.value }.collect { page ->
-//            pagerState.scrollToPage(page - 1)
-//        }
+        // Set page number on page changed
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            currentPage.value = page + 1
+            if (page != uiState.readingProgress.value.currentPage - 1) {
+                uiState.readingProgress.value =
+                    uiState.readingProgress.value.copy(currentPage = page + 1)
+            }
         }
     }
 
-    if (collectText && canCollectText) {
-        canCollectText = false
-        LaunchedEffect(true) {
-            getTextContents(source.contents, textInput)
+    LaunchedEffect(pagerState) {
+        uiState.readingProgress.value =
+            uiState.readingProgress.value.copy(pageCount = source.contents.pageCount)
+
+        // Scroll to page on page number changed
+        snapshotFlow { uiState.readingProgress.value.currentPage }.collect { page ->
+            if (pagerState.currentPage != page - 1) {
+                pagerState.scrollToPage(page - 1)
+            }
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { uiState.playTTS.value }.collect { playTTS ->
+            if (playTTS) {
+                if (uiState.job == null) {
+                    getTextContents(source.contents, uiState)
+                    uiState.startTTS()
+                } else {
+                    uiState.resumeTTS()
+                }
+            } else {
+                uiState.pauseTTS()
+            }
         }
     }
 
     if (horizontal) {
         HorizontalPager(
-            count = source.contents.size,
-            state = pagerState,
-            modifier = modifier
+            modifier = modifier,
+            count = source.contents.pageCount,
+            state = pagerState
         ) { page ->
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth(1f)
-                    .height(configuration.screenHeightDp.dp),
-                bitmap = source.contents[page].asImageBitmap(),
-                contentDescription = null
+            ZoomableImage(
+                bitmap = (source.contents
+                    .getPage(page, uiState.screenWidth, uiState.screenHeight)
+                        as ReadativePage.ImagePage
+                        ).bitmap
             )
         }
     } else {
         VerticalPager(
-            count = source.contents.size,
-            state = pagerState,
-            modifier = modifier
+            modifier = modifier,
+            count = source.contents.pageCount,
+            state = pagerState
         ) { page ->
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth(1f)
-                    .height(configuration.screenHeightDp.dp),
-                bitmap = source.contents[page].asImageBitmap(),
-                contentDescription = null
+            ZoomableImage(
+                bitmap = (source.contents
+                    .getPage(page, uiState.screenWidth, uiState.screenHeight)
+                        as ReadativePage.ImagePage
+                        ).bitmap
             )
         }
     }
 }
 
-suspend fun getTextContents(
-    images: List<Bitmap>,
-    textInput: MutableState<String>
+@Composable
+fun ZoomableImage(
+    modifier: Modifier = Modifier,
+    bitmap: Bitmap
 ) {
-    withContext(Dispatchers.IO) {
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        val content = StringBuilder()
-        images.forEach { bm ->
-            val image = InputImage.fromBitmap(bm, 0)
-            val result = recognizer.process(image)
-                .addOnSuccessListener { visionText ->
-                    content.append(' ', visionText.text)
-                }
-                .addOnFailureListener { e ->
-                    e.localizedMessage?.let { Log.e("MLKIT", it) }
-                }
-            Tasks.await(result)
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+        scale *= zoomChange
+        offset += offsetChange
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .transformable(state = state)
+    ) {
+        Image(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .graphicsLayer(
+                    // adding some zoom limits (min 100%, max 200%)
+                    scaleX = maxOf(1f, minOf(3f, scale)),
+                    scaleY = maxOf(1f, minOf(3f, scale)),
+                    translationX = maxOf(0f, offset.x),
+                    translationY = offset.y
+                ),
+            contentDescription = null,
+            bitmap = bitmap.asImageBitmap()
+        )
+    }
+}
+
+fun getTextContents(
+    content: PdfBook,
+    uiState: ReadingUiState
+) {
+    uiState.job = uiState.coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+            for (ind in 0 until content.pageCount) {
+                val bm = (content.getPage(
+                    ind,
+                    uiState.screenWidth,
+                    uiState.screenHeight
+                ) as ReadativePage.ImagePage).bitmap
+                val image = InputImage.fromBitmap(bm, 0)
+                val result = recognizer.process(image)
+                    .addOnSuccessListener { visionText ->
+                        uiState.addToTTSQueue(visionText.text)
+                    }
+                    .addOnFailureListener { e ->
+                        e.localizedMessage?.let { Log.e("MLKIT", it) }
+                    }
+                Tasks.await(result)
+            }
         }
-        textInput.value = content.toString()
     }
 }

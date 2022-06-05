@@ -7,6 +7,9 @@ import com.example.reader.ReadativePage
 
 sealed class ReadingState : State {
     object Loading: ReadingState()
-    data class Loaded(val source: ReadativeBookContent, val information: BookWithFullInfo): ReadingState()
+    data class Loaded(
+        val source: ReadativeBookContent,
+        val information: BookWithFullInfo
+        ): ReadingState()
     data class Error(val message: String): ReadingState()
 }

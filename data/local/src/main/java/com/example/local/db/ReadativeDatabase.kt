@@ -43,6 +43,7 @@ abstract class ReadativeDatabase : RoomDatabase() {
     abstract val reviewDao: ReviewDao
     abstract val shelfDao: ShelfDao
     abstract val crossRefsDao: CrossRefsDao
+    abstract val bookFtsDao: BookFtsDao
 
     companion object {
         const val DATABASE_NAME = "readative.db"

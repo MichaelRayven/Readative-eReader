@@ -1,24 +1,28 @@
-package com.example.readative.navigation
+package com.example.readative
 
 import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.ContentUris
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Environment
-import android.os.ParcelFileDescriptor
-import android.os.ParcelFileDescriptor.*
 import android.provider.MediaStore
-import android.util.Log
+import android.provider.Settings
 import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.GridView
@@ -28,35 +32,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.archives.Archive
-import com.example.model.local.entity.Book
 import com.example.model.local.entity.BookFile
 import com.example.model.local.util.ArchiveFormat
 import com.example.model.local.util.BookFormat
-import com.example.model.local.util.FileSize
+import com.example.readative.navigation.Navigation
+import com.example.readative.navigation.ReadativeScreen
 import com.example.readative.theme.ReadativeTheme
-import com.example.reader.ReadativeBook
 import com.example.reader.ReadativeBookReader
 import com.example.theme.R
 import com.example.usecase.app.AppUseCases
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class ReadativeActivity : ComponentActivity() {
     private var readPermissionGranted = false
+    private var managePermissionGranted = false
     private lateinit var permissionsLauncher: ActivityResultLauncher<String>
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     private val namespaceData = mutableMapOf<String, Int>()
 
@@ -74,6 +83,12 @@ class ReadativeActivity : ComponentActivity() {
             }
         }
 
+//        val windowInsetsController = ViewCompat.getWindowInsetsController(window.decorView) ?: return
+//        windowInsetsController.systemBarsBehavior =
+//            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
+
         permissionsLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
                 if (permission) {
@@ -82,23 +97,65 @@ class ReadativeActivity : ComponentActivity() {
                     loadBooksIntoDatabase()
                 }
             }
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+
+                }
+            }
+        }
         updateOrRequestReadPermission()
-        if (readPermissionGranted) {
+//        if (readPermissionGranted) {
+//            initContentObserver()
+//            loadBooksIntoDatabase()
+//        }
+        if (managePermissionGranted) {
             initContentObserver()
             loadBooksIntoDatabase()
         }
     }
 
+    private fun requestPermission() {
+        if (SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.addCategory("android.intent.category.DEFAULT")
+                intent.data =
+                    Uri.parse(String.format("package:%s", applicationContext.packageName))
+
+                activityResultLauncher.launch(intent)
+            } catch (e: Exception) {
+                val intent = Intent()
+                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                activityResultLauncher.launch(intent)
+            }
+        } else {
+            permissionsLauncher.launch(WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     private fun updateOrRequestReadPermission() {
-        val hasReadPermission = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasManagePermission = if (SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager();
+        } else {
+            ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
 
-        readPermissionGranted = hasReadPermission
+//        val hasReadPermission = ContextCompat.checkSelfPermission(
+//            this,
+//            Manifest.permission.READ_EXTERNAL_STORAGE
+//        ) == PackageManager.PERMISSION_GRANTED
 
-        if (!readPermissionGranted) {
-            permissionsLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        readPermissionGranted = hasReadPermission
+        managePermissionGranted = hasManagePermission
+
+//        if (!readPermissionGranted) {
+//            permissionsLauncher.launch(READ_EXTERNAL_STORAGE)
+//        }
+        if (!managePermissionGranted) {
+            requestPermission()
         }
     }
 
@@ -183,8 +240,8 @@ class ReadativeActivity : ComponentActivity() {
                     val path = archive.extractEntry(tempDir, input, archiveEntry)
                         ?: return@forEach
                     val format = ArchiveFormat.values().firstOrNull {
-                            it.extension == path.substringAfterLast('.', "")
-                        } ?: return@forEach
+                        it.extension == path.substringAfterLast('.', "")
+                    } ?: return@forEach
 
                     val archiveInner = Archive
                         .Builder()
@@ -370,13 +427,14 @@ fun ReadativeTopBar(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val screen = ReadativeScreen.fromRoute(currentRoute)
+//    val screen = ReadativeScreen.fromRoute(currentRoute)
 
     TopAppBar(
         title = { Text("Readative") },
         navigationIcon = {
             IconButton(onClick = { /*TODO*/ }) {
-                Icon(
+                Image(
+                    modifier = Modifier.size(42.dp),
                     painter = painterResource(R.drawable.ic_logotype),
                     contentDescription = null
                 )
@@ -395,7 +453,7 @@ fun ReadativeTopBar(
                     contentDescription = null
                 )
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { navController.navigate(ReadativeScreen.SearchScreen.route) }) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = null

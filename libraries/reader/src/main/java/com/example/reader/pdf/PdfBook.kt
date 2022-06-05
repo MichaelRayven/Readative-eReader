@@ -86,7 +86,11 @@ class PdfBook(
         var width = core.getPageWidthPoint(book, index).toFloat()
         var height = core.getPageHeightPoint(book, index).toFloat()
 
-        val scaleFactor = 100f / (width * 100 / widthPx)
+        val scaleFactor = if (width > widthPx) {
+            100f / (width * 100 / widthPx)
+        } else {
+            100f / (height * 100 / heightPx)
+        }
 
         width *= scaleFactor
         height *= scaleFactor
@@ -104,33 +108,34 @@ class PdfBook(
     }
 
     override fun getBookContents(widthPx: Int, heightPx: Int): ReadativeBookContent {
-        val bitmapList = mutableListOf<Bitmap>()
-        for (index in 0 until pageCount) {
-            core.openPage(book, index)
-
-            var width = core.getPageWidthPoint(book, index).toFloat()
-            var height = core.getPageHeightPoint(book, index).toFloat()
-
-            val scaleFactor = if (width > widthPx) {
-                100f / (width * 100 / widthPx)
-            } else {
-                100f / (height * 100 / heightPx)
-            }
-
-            width *= scaleFactor
-            height *= scaleFactor
-
-            val bitmap = Bitmap.createBitmap(
-                width.toInt(), height.toInt(),
-                Bitmap.Config.RGB_565
-            )
-            core.renderPageBitmap(
-                book, bitmap, index, 0, 0,
-                width.toInt(), height.toInt()
-            )
-            bitmapList.add(bitmap)
-        }
-        return ReadativeBookContent.PDFContents(bitmapList)
+//        val bitmapList = mutableListOf<Bitmap>()
+//        for (index in 0 until pageCount) {
+//            core.openPage(book, index)
+//
+//            var width = core.getPageWidthPoint(book, index).toFloat()
+//            var height = core.getPageHeightPoint(book, index).toFloat()
+//
+//            val scaleFactor = if (width > widthPx) {
+//                100f / (width * 100 / widthPx)
+//            } else {
+//                100f / (height * 100 / heightPx)
+//            }
+//
+//            width *= scaleFactor
+//            height *= scaleFactor
+//
+//            val bitmap = Bitmap.createBitmap(
+//                width.toInt(), height.toInt(),
+//                Bitmap.Config.RGB_565
+//            )
+//            core.renderPageBitmap(
+//                book, bitmap, index, 0, 0,
+//                width.toInt(), height.toInt()
+//            )
+//            bitmapList.add(bitmap)
+//        }
+//        return ReadativeBookContent.PDFContents(bitmapList)
+        return ReadativeBookContent.PDFContents(this)
     }
 
     override fun close() {
